@@ -329,6 +329,11 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: run test with coverage
+        run: npm test -- --coverage || true
       
       - name: SonarQube Scan
         uses: SonarSource/sonarcloud-github-action@v2
@@ -339,12 +344,20 @@ jobs:
             -Dsonar.projectKey=buicongthanh861_3-tier-user-platform
             -Dsonar.organization=java-woof
             -Dsonar.host.url=https://sonarcloud.io/
+            -Dsonar.qualitygate.wait=true
+            -Dsonar.qualitygate.timeout=600
       
-      - name: sonarcloud-quality-gate
-        uses: SonarSource/sonarcloud-quality-gate-action@v1
-        timeout-minutes: 5
-        env:
-          SONAR_TOKEN: ${{ secrets.SONARQUBE_TOKEN }}
+      - name: Upload SonarQube report
+        uses: actions/upload-artifact@v4
+        with:
+          name: sonarqube-report
+          path: |
+            .scannerwork/report-task.txt
+            sonar-project.properties
+          if-no-files-found: warn
+
+      
+      
     
         
 

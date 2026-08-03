@@ -328,12 +328,19 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
-      - name: Install dependencies
-        run: npm ci
-      
-      - name: run test with coverage
-        run: npm test -- --coverage || true
+    
+      - name: Client - Install dependencies & test coverage
+        run: |
+          npm ci
+          npm test -- --coverage || true
+        working-directory: ./client
+
+      # Cài dependencies và chạy test cho server
+      - name: Server - Install dependencies & test coverage
+        run: |
+          npm ci
+          npm test -- --coverage || true
+        working-directory: ./server
       
       - name: SonarQube Scan
         uses: SonarSource/sonarcloud-github-action@v2

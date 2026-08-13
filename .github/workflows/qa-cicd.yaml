@@ -362,8 +362,162 @@ jobs:
             .scannerwork/report-task.txt
             sonar-project.properties
           if-no-files-found: warn
-
+  
+  client-build:
+    name: client-build
+    runs-on: ubuntu-latest
+    needs:
+      - checkov-terraform
+      - checkov-kubernetes
+      - checkov-docker
+      - Trivy-Client-Scan
+      - lint-client
+      - testcase-client
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
       
+      - name: setup Nodejs
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: client/package-lock.json
+      
+      - name: install dependencies
+        run: npm ci
+        working-directory: ./client
+      
+      - name: Build client
+        run: npm run build --if-present
+        working-directory: ./client
+  
+  docker-backend-build:
+    name: build docker image and push
+    runs-on: ubuntu-latest
+    needs:
+      - checkov-terraform
+      - checkov-kubernetes
+      - checkov-docker
+      - Trivy-Server-Scan
+      - lint-server
+      - testcase-server
+  
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+      
+      - name: install trivy
+        run: |
+          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
+          trivy --version
+      
+      - name: login to Docker Hub
+        uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+        
+      - name: setup QEMU
+        uses: docker/setup-qemu-action@v4
+
+      - name: setup Docker Buildx
+        uses: docker/setup-buildx-action@v4
+      
+      - name: build and push docker backend image
+        uses: docker/build-push-action@v7
+        with:
+          context: ./server
+          file: ./server/Dockerfile
+          push: true
+          tags: |
+            congthanh19/3-tier-user-platform-backend:${{ github.sha }}
+            congthanh19/3-tier-user-platform-backend:latest
+      - name: scan backend image with trivy
+        run: |
+          docker pull congthanh19/3-tier-user-platform-backend:${{ github.sha }}
+          trivy image congthanh19/3-tier-user-platform-backend:${{ github.sha }} --format json --output trivy-backend-report.json --severity CRITICAL,HIGH --ignore-unfixed --exit-code 0 || true
+
+      - name: scan backend image with trivy (table)
+        run: |
+          trivy image congthanh19/3-tier-user-platform-backend:${{ github.sha }} --format table --severity CRITICAL,HIGH --ignore-unfixed --exit-code 0 > trivy-backend-report.table.txt || true
+
+      - name: Upload Trivy container reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-backend-container-report
+          path: | 
+            trivy-backend-report.json
+            trivy-backend-report.table.txt
+          if-no-files-found: warn
+          
+
+  docker-frontend-build:
+    name: Build and push Frontend image
+    runs-on: ubuntu-latest
+    needs:
+      - client-build
+      - lint-client
+      - testcase-client
+      - checkov-terraform
+      - checkov-kubernetes
+      - checkov-docker
+      
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: install trivy
+        run: |
+          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
+          trivy --version
+
+        
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+      
+      - name: Login to Docker Hub
+        uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+      
+      - name: Build and push Frontend image
+        uses: docker/build-push-action@v7
+        with:
+          context: ./client  
+          file: ./client/Dockerfile  
+          push: true
+          tags: |
+            congthanh19/3-tier-user-platform-frontend:${{ github.sha }}
+            congthanh19/3-tier-user-platform-frontend:latest
+      
+      - name: Scan frontend image with Trivy
+        run: |
+          docker pull congthanh19/3-tier-user-platform-frontend:${{ github.sha }}
+          trivy image congthanh19/3-tier-user-platform-frontend:${{ github.sha }} --format json --output trivy-frontend-report.json --severity CRITICAL,HIGH --ignore-unfixed --exit-code 0 || true
+
+      - name: Scan frontend image with Trivy (table)
+        run: |
+          trivy image congthanh19/3-tier-user-platform-frontend:${{ github.sha }} --format table --severity CRITICAL,HIGH --ignore-unfixed --exit-code 0 > trivy-frontend-report.table.txt || true
+
+      - name: Upload Trivy container reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-frontend-container-report
+          path: | 
+            trivy-frontend-report.json
+            trivy-frontend-report.table.txt
+          if-no-files-found: warn
+
+  
+
+
+  
+
       
     
         

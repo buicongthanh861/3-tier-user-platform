@@ -319,7 +319,7 @@ jobs:
         working-directory: ./server
       
       - name: SonarQube Scan
-        uses: SonarSource/sonarcloud-github-action@v4
+        uses: SonarSource/sonarcloud-github-action@master
         env:
           SONAR_TOKEN: ${{ secrets.SONARQUBE_TOKEN }}
         with:
@@ -380,7 +380,9 @@ jobs:
       - testcase-server
     timeout-minutes: 20
     if: github.event_name == 'push'
-
+    permissions:
+      id-token: write
+      contents: read
   
     steps:
       - name: Checkout source code
@@ -443,7 +445,9 @@ jobs:
       - testcase-client
     timeout-minutes: 20
     if: github.event_name == 'push'
-
+    permissions:
+      id-token: write
+      contents: read
   
     steps:
       - name: Checkout source code

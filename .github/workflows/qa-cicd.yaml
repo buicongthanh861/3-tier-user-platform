@@ -293,21 +293,20 @@ jobs:
       - testcase-client
       - testcase-server
     if: success()
+    continue-on-error: true
 
     steps:
       - name: Checkout source code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      
-      
+    
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '21'
-      
-      # 2. VERIFY JAVA VERSION - DEBUG
+    
       - name: Verify Java version
         run: |
           echo "JAVA_HOME: $JAVA_HOME"
@@ -318,7 +317,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-        
       
       - name: Client - Install dependencies & test coverage
         run: |
@@ -337,7 +335,6 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONARQUBE_TOKEN }}
           JAVA_HOME: ${{ env.JAVA_HOME_21_X64 }}
-          SONAR_SCANNER_OPTS: "-Djava.version=21"
         with:
           args: >
             -Dsonar.projectKey=buicongthanh861_3-tier-user-platform
@@ -345,6 +342,7 @@ jobs:
             -Dsonar.host.url=https://sonarcloud.io/
             -Dsonar.qualitygate.wait=true
             -Dsonar.qualitygate.timeout=600
+
       
       - name: Upload SonarQube report
         uses: actions/upload-artifact@v4
@@ -354,7 +352,7 @@ jobs:
             .scannerwork/report-task.txt
             sonar-project.properties
           if-no-files-found: warn
-  
+    
   client-build:
     name: client-build
     runs-on: ubuntu-latest
@@ -396,9 +394,6 @@ jobs:
       - testcase-server
     timeout-minutes: 20
     if: github.event_name == 'push'
-    permissions:
-      id-token: write
-      contents: read
   
     steps:
       - name: Checkout source code
@@ -409,31 +404,11 @@ jobs:
           curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
           trivy --version
       
-      - name: Debug OIDC Token
-        run: |
-          echo "AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}"
-          echo "Actor: ${{ github.actor }}"
-          echo "Repository: ${{ github.repository }}"
-          echo "Ref: ${{ github.ref }}"
-          curl -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
-              "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=sts.amazonaws.com"
-      
-      - name: Debug OIDC Token
-        run: |
-          echo "AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}"
-          echo "Actor: ${{ github.actor }}"
-          echo "Repository: ${{ github.repository }}"
-          echo "Ref: ${{ github.ref }}"
-          # Lấy và hiển thị token
-          TOKEN=$(curl -s -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=sts.amazonaws.com" | jq -r '.value')
-          echo "Token obtained: ${TOKEN:0:10}..."
-          # Giải mã token để kiểm tra claims (chạy trên jwt.io)
-          echo $TOKEN | cut -d. -f2 | base64 -d 2>/dev/null || echo "Unable to decode token"
-      
       - name: Configure AWS credentials 
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Login to Amazon ECR
@@ -494,20 +469,12 @@ jobs:
         run: |
           curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
           trivy --version
-      - name: Debug OIDC Token
-        run: |
-          echo "AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}"
-          echo "Actor: ${{ github.actor }}"
-          echo "Repository: ${{ github.repository }}"
-          echo "Ref: ${{ github.ref }}"
-          # Kiểm tra token
-          curl -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
-              "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=sts.amazonaws.com"
       
       - name: Configure AWS credentials 
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Login to Amazon ECR

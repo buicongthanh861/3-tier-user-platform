@@ -8,15 +8,15 @@ function App() {
     const [email, setEmail] = useState('');
     const [role, setRole] = useState('');
 
-    // Fetch users from the backend
+    // Lấy danh sách người dùng từ backend
     useEffect(() => {
         fetch('/api/users')
             .then(res => res.json())
             .then(data => setUsers(data))
-            .catch(err => console.error('Error fetching users:', err));
+            .catch(err => console.error('Lỗi khi lấy người dùng:', err));
     }, []);
 
-    // Handle form submission
+    // Xử lý khi thêm người dùng
     const handleSubmit = (e) => {
         e.preventDefault();
 
@@ -36,39 +36,38 @@ function App() {
                 setEmail('');
                 setRole('');
             })
-            .catch(err => console.error('Error adding user:', err));
+            .catch(err => console.error('Lỗi khi thêm người dùng:', err));
     };
 
     return (
         <div className="app">
             <div className="navbar">
-                <div className="brand">Cong Thanh DevOps123</div>
+                <div className="brand">Cong Thanh DevOps</div>
                 <div className="nav-links">
-                    <a className="home" href="/">Home</a>
-                    <a className="youtube" href="https://www.youtube.com/@devopsshack/videos">YouTube</a>
-                    <a className="courses" href="https://www.devopsshack.com/">Courses</a>
-                    <a className="telegram" href="https://t.me/+9roGPjX1YI42Yzdl">Telegram</a>
-                    <a className="instagram" href="https://www.instagram.com/devopsshack/">Instagram</a>
+                    <a className="home" href="/">Trang chủ</a>
                 </div>
             </div>
-            <h1>Cong Thanh User Management App</h1>
+
+            <h1>Ứng dụng quản lý người dùng</h1>
+
             <div className="form-container">
-                <input type="text" placeholder="New user name" value={name} onChange={(e) => setName(e.target.value)} />
-                <input type="email" placeholder="New user email" value={email} onChange={(e) => setEmail(e.target.value)} />
+                <input type="text" placeholder="Nhập tên người dùng" value={name} onChange={(e) => setName(e.target.value)} />
+                <input type="email" placeholder="Nhập email người dùng" value={email} onChange={(e) => setEmail(e.target.value)} />
                 <select value={role} onChange={(e) => setRole(e.target.value)}>
-                    <option value="">Select role</option>
-                    <option value="Admin">Admin</option>
-                    <option value="User">User</option>
+                    <option value="">Chọn vai trò</option>
+                    <option value="Admin">Quản trị viên</option>
+                    <option value="User">Người dùng</option>
                 </select>
-                <button onClick={handleSubmit}>Add User</button>
+                <button onClick={handleSubmit}>Thêm người dùng</button>
             </div>
+
             <ul className="user-list">
                 {users.map(user => (
                     <li key={user.id} className="user-item">
                         <span>{user.name} ({user.email}) - {user.role}</span>
                         <div className="edit-container">
-                            <button>Edit</button>
-                            <button>Delete</button>
+                            <button>Sửa</button>
+                            <button>Xóa</button>
                         </div>
                     </li>
                 ))}
@@ -78,4 +77,3 @@ function App() {
 }
 
 export default App;
-

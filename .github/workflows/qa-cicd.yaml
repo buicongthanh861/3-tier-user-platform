@@ -352,7 +352,7 @@ jobs:
           IMAGE_TAG: ${{ github.sha }}
 
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG ./server
+          docker build --no-cache -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG ./server
           docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
           docker push $ECR_REGISTRY/$ECR_REPOSITORY --all-tags
           trivy image $ECR_REGISTRY/$ECR_REPOSITORY:${{ github.sha }} --format json --output trivy-backend-report.json --severity CRITICAL,HIGH --ignore-unfixed --exit-code 0 || true
@@ -416,7 +416,7 @@ jobs:
           IMAGE_TAG: ${{ github.sha }}
 
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG ./client
+          docker build --no-cache -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG ./client
           docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
           docker push $ECR_REGISTRY/$ECR_REPOSITORY --all-tags
           trivy image $ECR_REGISTRY/$ECR_REPOSITORY:${{ github.sha }} --format json --output trivy-frontend-report.json --severity CRITICAL,HIGH --ignore-unfixed --exit-code 0 || true

@@ -42,7 +42,7 @@ function App() {
     return (
         <div className="app">
             <div className="navbar">
-                <div className="brand">Cong Thanh DevOps123</div>
+                <div className="brand">Cong Thanh DevOps</div>
                 <div className="nav-links">
                     <a className="home" href="/">Trang chủ</a>
                 </div>

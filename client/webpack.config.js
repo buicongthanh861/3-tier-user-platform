@@ -1,11 +1,11 @@
 const path = require('path');
 
 module.exports = {
-  mode: 'production',
+  mode: 'development',  // Đổi từ production sang development
   entry: './src/index.js',
   output: {
     filename: 'bundle.js',
-    path: path.resolve(__dirname, 'public'), // Ensure this path is correct
+    path: path.resolve(__dirname, 'public'),
   },
   module: {
     rules: [
@@ -25,14 +25,18 @@ module.exports = {
         ],
       },
       {
-        test: /\.js$/,
+        test: /\.(js|jsx)$/,
         exclude: /node_modules/,
-        use: 'babel-loader',
+        use: {
+          loader: 'babel-loader',
+          options: {
+            presets: ['@babel/preset-env', '@babel/preset-react']
+          }
+        },
       },
     ],
   },
   resolve: {
-    extensions: ['.js', '.css', '.png'],
+    extensions: ['.js', '.jsx', '.css', '.png'],
   },
 };
-

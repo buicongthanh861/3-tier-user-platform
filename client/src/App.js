@@ -95,7 +95,7 @@ function App() {
     return (
         <div className="app">
             <div className="navbar">
-                <div className="brand">Cong Thanh DevOps8888</div>
+                <div className="brand">Cong Thanh DevOps00000</div>
                 <div className="nav-links">
                     <a className="home" href="/">Trang chủ</a>
                 </div>
